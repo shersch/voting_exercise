@@ -4,7 +4,7 @@ import json
 import redis
 
 print("Connecting...")
-time.sleep(5)
+time.sleep(10)
 r = redis.Redis(host="redis", port=6379, db=0)
 connection = pika.BlockingConnection(pika.ConnectionParameters(host="rabbitmq"))
 channel = connection.channel()

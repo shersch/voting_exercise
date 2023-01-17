@@ -7,12 +7,20 @@ services:
       - 5672:5672
       - 15672:15672
 
+  redis:
+    image: redis:alpine
+    ports:
+      - 6379:6379
+
   server:
     build: server
     volumes:
       - ./server:/app
     ports:
       - 5000:5000
+    depends_on:
+      - rabbitmq
+
 
   worker:
     build: worker
@@ -20,8 +28,5 @@ services:
       - ./worker:/app
     environment:
       - PYTHONUNBUFFERED=1
-
-  redis:
-    image: redis:alpine
-    ports:
-      - 6379:6379
+    depends_on:
+      - rabbitmq
