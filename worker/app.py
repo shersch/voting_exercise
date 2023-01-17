@@ -1,26 +1,20 @@
 import pika
-import time
 import json
 import redis
 
 print("Connecting...")
-time.sleep(10)
-
 connecting = True
 while connecting:
     try:
         connection = pika.BlockingConnection(pika.ConnectionParameters(host="rabbitmq"))
         connecting = False
+        channel = connection.channel()
+        channel.queue_declare(queue="vote_queue", durable=True)
+        print("Connected!")
     except Exception:
         connecting = True
 
-channel = connection.channel()
-channel.queue_declare(queue="vote_queue", durable=True)
-
-print("Waiting for messages.")
-
-
-def callback(ch, method, properties, body):
+def submitVote(ch, method, properties, body):
     body = json.loads(body)
     score = int(body["score"])
     id = int(body["postId"])
@@ -47,7 +41,6 @@ def callback(ch, method, properties, body):
 
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
-
 channel.basic_qos(prefetch_count=1)
-channel.basic_consume(queue='vote_queue', on_message_callback=callback)
+channel.basic_consume(queue='vote_queue', on_message_callback=submitVote)
 channel.start_consuming()

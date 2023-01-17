@@ -4,21 +4,23 @@ import pika
 import json
 import redis
 
-r = redis.Redis(host='redis', port=6379, db=0)
 app = Flask(__name__)
 
 @app.route('/vote')
 def vote():
+
     try:
         vote = request.args.get("score")
         id = request.args.get("postId")
     except Exception:
-        print("Parameter error.")
+        return "Parameter error."
     if vote == "1" or vote == "-1":
         data = {
             "score": vote,
             "postId": id
         }
+    else:
+        return "Score must be 1 or -1."
 
     connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbitmq'))
     channel = connection.channel()
@@ -42,6 +44,7 @@ def vote():
 def voteCount():
     id = request.args.get("postId")
     try:
+        r = redis.Redis(host='redis', port=6379, db=0)
         data = json.loads(r.get(id))
         return data
     except Exception:
