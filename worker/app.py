@@ -25,6 +25,8 @@ def callback(ch, method, properties, body):
     score = int(body["score"])
     id = int(body["postId"])
 
+    r = redis.Redis(host="redis", port=6379, db=0)
+
     try:
         data = json.loads(r.get(id))
     except Exception:
@@ -39,7 +41,6 @@ def callback(ch, method, properties, body):
         data["downvote"] += 1
 
     try:
-        r = redis.Redis(host="redis", port=6379, db=0)
         r.set(id, json.dumps(data))
     except Exception:
         print("failed to submit vote")
