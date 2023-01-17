@@ -5,8 +5,15 @@ import redis
 
 print("Connecting...")
 time.sleep(10)
-r = redis.Redis(host="redis", port=6379, db=0)
-connection = pika.BlockingConnection(pika.ConnectionParameters(host="rabbitmq"))
+
+connecting = True
+while connecting:
+    try:
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host="rabbitmq"))
+        connecting = False
+    except Exception:
+        connecting = True
+
 channel = connection.channel()
 channel.queue_declare(queue="vote_queue", durable=True)
 
@@ -32,6 +39,7 @@ def callback(ch, method, properties, body):
         data["downvote"] += 1
 
     try:
+        r = redis.Redis(host="redis", port=6379, db=0)
         r.set(id, json.dumps(data))
     except Exception:
         print("failed to submit vote")
